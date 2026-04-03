@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "workflow-diagram-agent"
+version = "0.1.0"
+description = "Generate concise executive-level workflow diagrams from pasted text."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+workflow-diagram-agent = "workflow_diagram_agent.cli:main"
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

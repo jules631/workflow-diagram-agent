@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workflow Diagram Agent</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      }
+      body {
+        margin: 0;
+        padding: 2rem;
+        max-width: 980px;
+      }
+      h1 {
+        margin-top: 0;
+      }
+      textarea {
+        width: 100%;
+        min-height: 160px;
+        padding: 0.75rem;
+        font-size: 1rem;
+      }
+      .row {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+      }
+      button {
+        padding: 0.6rem 1rem;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      #status {
+        opacity: 0.85;
+      }
+      pre {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+        overflow-x: auto;
+      }
+      #diagram {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+      }
+    </style>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({ startOnLoad: false, theme: "default" });
+
+      const input = document.getElementById("input");
+      const status = document.getElementById("status");
+      const code = document.getElementById("code");
+      const diagram = document.getElementById("diagram");
+      const maxSteps = document.getElementById("maxSteps");
+      const button = document.getElementById("generate");
+
+      async function generate() {
+        const text = input.value.trim();
+        if (!text) {
+          status.textContent = "Paste workflow text first.";
+          return;
+        }
+
+        button.disabled = true;
+        status.textContent = "Generating diagram...";
+
+        try {
+          const response = await fetch("/api/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text, max_steps: Number(maxSteps.value || 6) }),
+          });
+          const data = await response.json();
+
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || "Generation failed");
+          }
+
+          code.textContent = data.diagram;
+          const { svg } = await mermaid.render(`m-${Date.now()}`, data.diagram);
+          diagram.innerHTML = svg;
+          status.textContent = "Done.";
+        } catch (error) {
+          status.textContent = `Error: ${error.message}`;
+        } finally {
+          button.disabled = false;
+        }
+      }
+
+      button.addEventListener("click", generate);
+    </script>
+  </head>
+  <body>
+    <h1>Workflow Diagram Agent</h1>
+    <p>Paste workflow notes and generate a concise executive-level Mermaid flowchart.</p>
+    <textarea id="input" placeholder="Example: Collect requirements. Prioritize initiatives. Approve roadmap. Execute and report outcomes."></textarea>
+    <div class="row">
+      <label for="maxSteps">Max steps:</label>
+      <input id="maxSteps" type="number" min="2" max="12" value="6" />
+      <button id="generate">Generate Diagram</button>
+      <span id="status"></span>
+    </div>
+    <pre id="code"></pre>
+    <div id="diagram"></div>
+  </body>
+</html>
