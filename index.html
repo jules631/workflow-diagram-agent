@@ -71,7 +71,7 @@
         status.textContent = "Generating diagram...";
 
         try {
-          const response = await fetch("/api/generate", {
+          const response = await fetch("/api", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ text, max_steps: Number(maxSteps.value || 6) }),
